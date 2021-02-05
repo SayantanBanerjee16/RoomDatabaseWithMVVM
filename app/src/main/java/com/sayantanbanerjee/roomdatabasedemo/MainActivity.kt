@@ -46,6 +46,13 @@ class MainActivity : AppCompatActivity() {
 
         // Observe the Subscriber List and display on the recycler View.
         initRecyclerView()
+
+        // Observe and display Logging toast message
+        subscriberViewModel.message.observe(this, Observer {
+            it.getContentIfNotHandled()?.let {
+                Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     private fun initRecyclerView() {

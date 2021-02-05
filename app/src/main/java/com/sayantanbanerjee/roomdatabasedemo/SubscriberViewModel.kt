@@ -2,6 +2,7 @@ package com.sayantanbanerjee.roomdatabasedemo
 
 import androidx.databinding.Bindable
 import androidx.databinding.Observable
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,6 +37,11 @@ class SubscriberViewModel(private val repository: SubscriberRepository) : ViewMo
     private var isUpdateOrDelete = false
     private lateinit var subscriberToUpdateOrDelete: Subscriber
 
+    // For logging, we will declare a mutable live data of Event class.
+    private val statusMessage = MutableLiveData<Event<String>>()
+    val message: LiveData<Event<String>>
+        get() = statusMessage
+
     // Initializing the variables.
     init {
         saveOrUpdateButtonText.value = "Save"
@@ -44,18 +50,24 @@ class SubscriberViewModel(private val repository: SubscriberRepository) : ViewMo
 
     // Inserting/Updating into the database.
     fun saveOrUpdate() {
-        val name = inputName.value!!
-        val email = inputEmail.value!!
-        if (isUpdateOrDelete) {
-            subscriberToUpdateOrDelete.name = name
-            subscriberToUpdateOrDelete.email = email
-            update(subscriberToUpdateOrDelete)
-            resetAfterDeleteOrUpdate()
+        if (inputName.value == null || inputEmail.value == null) {
+            statusMessage.value = Event("Please insert the fields value.")
         } else {
-            insert(Subscriber(0, name, email))
+            val name = inputName.value!!
+            val email = inputEmail.value!!
+            if (isUpdateOrDelete) {
+                subscriberToUpdateOrDelete.name = name
+                subscriberToUpdateOrDelete.email = email
+                update(subscriberToUpdateOrDelete)
+                resetAfterDeleteOrUpdate()
+            } else {
+                insert(Subscriber(0, name, email))
+                inputName.value = null
+                inputEmail.value = null
+            }
+
         }
-        inputName.value = null
-        inputEmail.value = null
+
     }
 
     // Deleting a particular or all the items from the database.
@@ -92,24 +104,28 @@ class SubscriberViewModel(private val repository: SubscriberRepository) : ViewMo
     // For that we are calling the Repository class Insert function.
     private fun insert(subscriber: Subscriber) = viewModelScope.launch {
         repository.insert(subscriber)
+        statusMessage.value = Event("Input successfully done.")
     }
 
     // Updating a field into the database in a background thread.
     // For that we are calling the Repository class Update() function.
     private fun update(subscriber: Subscriber) = viewModelScope.launch {
         repository.update(subscriber)
+        statusMessage.value = Event("Update successfully done.")
     }
 
     // Deleting a field into the database in a background thread.
     // For that we are calling the Repository class Delete() function.
     private fun delete(subscriber: Subscriber) = viewModelScope.launch {
         repository.delete(subscriber)
+        statusMessage.value = Event("Delete successfully done.")
     }
 
     // Deleting all the fields from the database in a background thread.
     // For that we are calling the Repository class DeleteALl() function.
     private fun clearAll() = viewModelScope.launch {
         repository.deleteAll()
+        statusMessage.value = Event("Clear All successfully done.")
     }
 
     // Over-ridden function of the Observable class
