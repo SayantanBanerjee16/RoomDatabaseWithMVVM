@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.sayantanbanerjee.roomdatabasedemo.databinding.ActivityMainBinding
 import com.sayantanbanerjee.roomdatabasedemo.db.SubscriberDatabase
 import com.sayantanbanerjee.roomdatabasedemo.db.SubscriberRepository
@@ -14,6 +15,7 @@ class MainActivity : AppCompatActivity() {
 
     // Declare the Data-Binding variable
     private lateinit var binding: ActivityMainBinding
+
     // Declare the Subscriber View Model variable
     private lateinit var subscriberViewModel: SubscriberViewModel
 
@@ -41,13 +43,21 @@ class MainActivity : AppCompatActivity() {
         // Also set the view model lifecycle owner to this activity.
         binding.lifecycleOwner = this
 
-        // Observe the Subscriber List.
+        // Observe the Subscriber List and display on the recycler View.
+        initRecyclerView()
+    }
+
+    private fun initRecyclerView() {
+        // Initialize the recycler view
+        binding.subscriberRecyclerView.layoutManager = LinearLayoutManager(this)
+        // Display the Subscriber List
         displaySubscribersList()
     }
 
-    private fun displaySubscribersList(){
+    private fun displaySubscribersList() {
+        // Observe for any change of data and when new data appears, the updated list is send to the adapter.
         subscriberViewModel.subscriber.observe(this, Observer {
-            Log.i("LIST : ", it.toString())
+            binding.subscriberRecyclerView.adapter = RecyclerViewAdapter(it)
         })
     }
 }
