@@ -2,12 +2,13 @@ package com.sayantanbanerjee.roomdatabasedemo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sayantanbanerjee.roomdatabasedemo.databinding.ActivityMainBinding
+import com.sayantanbanerjee.roomdatabasedemo.db.Subscriber
 import com.sayantanbanerjee.roomdatabasedemo.db.SubscriberDatabase
 import com.sayantanbanerjee.roomdatabasedemo.db.SubscriberRepository
 
@@ -57,7 +58,15 @@ class MainActivity : AppCompatActivity() {
     private fun displaySubscribersList() {
         // Observe for any change of data and when new data appears, the updated list is send to the adapter.
         subscriberViewModel.subscriber.observe(this, Observer {
-            binding.subscriberRecyclerView.adapter = RecyclerViewAdapter(it)
+            binding.subscriberRecyclerView.adapter =
+                RecyclerViewAdapter(it) { selectedItem: Subscriber -> listItemClicked(selectedItem) }
         })
+    }
+
+    // Function defined to execute when user click on a particular list item.
+    // But how to make this function trigger?
+    // For that it is passed as Higher Order Function reference to the list view.
+    private fun listItemClicked(subscriber: Subscriber) {
+        subscriberViewModel.initUpdateOrDelete(subscriber)
     }
 }

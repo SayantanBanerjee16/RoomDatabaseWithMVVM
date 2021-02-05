@@ -32,7 +32,11 @@ class SubscriberViewModel(private val repository: SubscriberRepository) : ViewMo
     // This data is observed in the [MainActivity.kt] to display the whole list in the UI.
     val subscriber = repository.subscribers
 
-    // Initializing the variables
+    // Boolean variable to hold the state. When True -> Saving and Clearing All. When False -> Update or Delete a particular item.
+    private var isUpdateOrDelete = false
+    private lateinit var subscriberToUpdateOrDelete: Subscriber
+
+    // Initializing the variables.
     init {
         saveOrUpdateButtonText.value = "Save"
         clearAllOrDeleteButtonText.value = "Clear All"
@@ -42,14 +46,46 @@ class SubscriberViewModel(private val repository: SubscriberRepository) : ViewMo
     fun saveOrUpdate() {
         val name = inputName.value!!
         val email = inputEmail.value!!
-        insert(Subscriber(0, name, email))
+        if (isUpdateOrDelete) {
+            subscriberToUpdateOrDelete.name = name
+            subscriberToUpdateOrDelete.email = email
+            update(subscriberToUpdateOrDelete)
+            resetAfterDeleteOrUpdate()
+        } else {
+            insert(Subscriber(0, name, email))
+        }
         inputName.value = null
         inputEmail.value = null
     }
 
     // Deleting a particular or all the items from the database.
     fun clearAllOrDelete() {
-        clearAll()
+        if (isUpdateOrDelete) {
+            delete(subscriberToUpdateOrDelete)
+            resetAfterDeleteOrUpdate()
+        } else {
+            clearAll()
+        }
+    }
+
+    // Initializing the field values and button values once a particular item is selected.
+    // This function is triggered from the onClickListener()
+    fun initUpdateOrDelete(subscriber: Subscriber) {
+        inputName.value = subscriber.name
+        inputEmail.value = subscriber.email
+        isUpdateOrDelete = true
+        subscriberToUpdateOrDelete = subscriber
+        saveOrUpdateButtonText.value = "Update"
+        clearAllOrDeleteButtonText.value = "Delete"
+    }
+
+    // Resetting the field values and button values once a particular entry is updated or deleted.
+    private fun resetAfterDeleteOrUpdate() {
+        inputName.value = null
+        inputEmail.value = null
+        isUpdateOrDelete = false
+        saveOrUpdateButtonText.value = "Save"
+        clearAllOrDeleteButtonText.value = "Clear All"
     }
 
     // Inserting a field into the database in a background thread.
@@ -60,13 +96,13 @@ class SubscriberViewModel(private val repository: SubscriberRepository) : ViewMo
 
     // Updating a field into the database in a background thread.
     // For that we are calling the Repository class Update() function.
-    fun update(subscriber: Subscriber) = viewModelScope.launch {
+    private fun update(subscriber: Subscriber) = viewModelScope.launch {
         repository.update(subscriber)
     }
 
     // Deleting a field into the database in a background thread.
     // For that we are calling the Repository class Delete() function.
-    fun delete(subscriber: Subscriber) = viewModelScope.launch {
+    private fun delete(subscriber: Subscriber) = viewModelScope.launch {
         repository.delete(subscriber)
     }
 
@@ -80,6 +116,7 @@ class SubscriberViewModel(private val repository: SubscriberRepository) : ViewMo
     override fun addOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
 
     }
+
     // Over-ridden function of the Observable class
     override fun removeOnPropertyChangedCallback(callback: Observable.OnPropertyChangedCallback?) {
 

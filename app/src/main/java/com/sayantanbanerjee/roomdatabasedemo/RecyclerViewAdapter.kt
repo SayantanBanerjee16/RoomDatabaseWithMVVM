@@ -8,7 +8,10 @@ import com.sayantanbanerjee.roomdatabasedemo.databinding.ListItemBinding
 import com.sayantanbanerjee.roomdatabasedemo.db.Subscriber
 
 // Recycler View Adapter to display the subscriber list fetched from the database.
-class RecyclerViewAdapter(private val subscribersList: List<Subscriber>) :
+class RecyclerViewAdapter(
+    private val subscribersList: List<Subscriber>,
+    private val clickListener : (Subscriber) -> Unit
+) :
     RecyclerView.Adapter<RecyclerViewHolder>() {
 
     // Create the View Holder.
@@ -21,7 +24,7 @@ class RecyclerViewAdapter(private val subscribersList: List<Subscriber>) :
 
     // Bind each data with the view holder, i.e., create a new card.
     override fun onBindViewHolder(holder: RecyclerViewHolder, position: Int) {
-        holder.bind(subscribersList[position])
+        holder.bind(subscribersList[position], clickListener)
     }
 
     // Item count of the Recycler View.
@@ -34,8 +37,12 @@ class RecyclerViewAdapter(private val subscribersList: List<Subscriber>) :
 class RecyclerViewHolder(private val binding: ListItemBinding) :
     RecyclerView.ViewHolder(binding.root) {
     // This is called to bind the information to that particular card.
-    fun bind(subscriber: Subscriber) {
+    fun bind(subscriber: Subscriber , clickListener : (Subscriber) -> Unit) {
         binding.nameTextView.text = subscriber.name
         binding.emailTextView.text = subscriber.email
+        // click listener higher order function is triggered from here.
+        binding.listItemLayout.setOnClickListener {
+            clickListener(subscriber)
+        }
     }
 }
