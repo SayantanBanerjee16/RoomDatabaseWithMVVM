@@ -2,10 +2,52 @@ package com.sayantanbanerjee.roomdatabasedemo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.sayantanbanerjee.roomdatabasedemo.databinding.ActivityMainBinding
+import com.sayantanbanerjee.roomdatabasedemo.db.SubscriberDatabase
+import com.sayantanbanerjee.roomdatabasedemo.db.SubscriberRepository
 
 class MainActivity : AppCompatActivity() {
+
+    // Declare the Data-Binding variable
+    private lateinit var binding: ActivityMainBinding
+    // Declare the Subscriber View Model variable
+    private lateinit var subscriberViewModel: SubscriberViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+
+        // First set the DataBinding variable.
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+        // Next declare the database and fetch the dao instance.
+        val dao = SubscriberDatabase.getInstance(application).subscriberDao
+
+        // Using the dao instance , initialize the repository.
+        val repository = SubscriberRepository(dao)
+
+        // We need to pass values in the View Model constructor. So first declare View Model Factory.
+        val factory = SubscriberViewModelFactory(repository)
+
+        // Once we have the factory object, we can declare the View Model.
+        subscriberViewModel = ViewModelProvider(this, factory).get(SubscriberViewModel::class.java)
+
+        // Now set the View Model object with the data binding data object.
+        binding.myViewModel = subscriberViewModel
+
+        // Also set the view model lifecycle owner to this activity.
+        binding.lifecycleOwner = this
+
+        // Observe the Subscriber List.
+        displaySubscribersList()
+    }
+
+    private fun displaySubscribersList(){
+        subscriberViewModel.subscriber.observe(this, Observer {
+            Log.i("LIST : ", it.toString())
+        })
     }
 }
