@@ -20,6 +20,9 @@ class MainActivity : AppCompatActivity() {
     // Declare the Subscriber View Model variable
     private lateinit var subscriberViewModel: SubscriberViewModel
 
+    // Declare the Adapter variable
+    private lateinit var adapter: RecyclerViewAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -56,8 +59,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initRecyclerView() {
-        // Initialize the recycler view
+        // Initialize the recycler view.
         binding.subscriberRecyclerView.layoutManager = LinearLayoutManager(this)
+        // Initialize the adapter and bind it to the recycler view.
+        adapter = RecyclerViewAdapter { selectedItem: Subscriber -> listItemClicked(selectedItem) }
+        binding.subscriberRecyclerView.adapter = adapter
+
         // Display the Subscriber List
         displaySubscribersList()
     }
@@ -65,8 +72,12 @@ class MainActivity : AppCompatActivity() {
     private fun displaySubscribersList() {
         // Observe for any change of data and when new data appears, the updated list is send to the adapter.
         subscriberViewModel.subscriber.observe(this, Observer {
-            binding.subscriberRecyclerView.adapter =
-                RecyclerViewAdapter(it) { selectedItem: Subscriber -> listItemClicked(selectedItem) }
+            // Every time we get updated data, we send the updated data to the adapter,
+            // and notify it that the data set has been changed.
+            // So that only the changed data is reflected, and all other other items remain unaffected.
+            // Thus having a good performance.
+            adapter.setList(it)
+            adapter.notifyDataSetChanged()
         })
     }
 
